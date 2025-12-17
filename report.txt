@@ -1,0 +1,45 @@
+Hello infosec team,
+
+This is my first project and ive actually enjoyed working on it. its fully python based using standard libraries. Although it is a cli based tool but it works really well. As of now it can perform image steganography i.e hiding text into image or image into image, I got this 'image into image' idea from one of the cotd challenges we had, so i tried to implement it. It can also detect new image for hidden data via lsb inspection even metadeta anomalies for non png images.
+
+The challenges i faced so far was the understanding how the hiding actually takes place like we are converting payload into bits then embedding those bits in the lsb of each pixel's rgb channel also the use of numpy array to store all the bits all of this was a little complicated for me at first, but im really enjoying the process hoping to move towards audio steganography and adding some other features to it as well.
+
+Below is a brief report of all the programs of the tool
+
+detect.py -> this was the initial basic program just to detect the file type, it does nothing more than that.
+
+
+image_lsb.py -> this is the first program for hiding text payload into image file, it works like 
+                ~ we read all the text data convert them from bytes into bits for embedding
+                ~ we check if the payload can fit into the image if it passes then move to embedding
+                ~ whatever payload bits we have we will embed it into lsb of each rgb channel of our image 
+                ~ lastly we save our steg image 
+                ~ for extraction of text data from the image 
+                     ~we open the image; append all the lsb into bits[] list
+                     ~recover the payload; write the payload to disk using (file i/o) 
+
+scan.py -> this is the new program which we can use to scan the sus images for probable hidden text or metadata 
+           -> we install a new library "piexif" for this program (used for reading, modifying and removing metadata)
+            ~first we scan lsb patterns => ext lsb from all rgb channels =>decode the first 32 bits and check its size
+              if it satisfies 2 conditions size>0 (intended to hide data)&& size<image capacity (img can hold that much data)
+              if both the conditions are true we can flag it as "possible" hidden payload
+            ~for scanning metadata
+               we extract EXIF tags using that piexif library => create an array/list for anomalies and append unusual fields
+
+
+image_embed.py -> this takes image steganography ahead by embedding image into image 
+                 -> we use the new library PIL (py img library) for this purpose
+                 ~ as usual first we convert payload img into bits so we can embed it 
+                 ~ before embedding we do a capacity check 
+                 ~ if it can fit we put the bits of payload into the lsb of the cover  img and save it
+                 ~ for extraction of image from the image
+                          ~open the image and extract the lsb from it=> we reconstruct the header file (it stores the info of the payload)
+                          ~calculate the total bits needed=>extract the payload+header
+                          ~rebuild the payload bytes to image and save it
+
+So all of this is combinedly imported and run from main.py that is where the cli works from, so its not messy.  
+This sums up the entire tool (as of now) i hope my work met your expectations and i would appreciate any improvements and inputs from your side.
+
+Thanks
+Adarsh
+25JE0809
