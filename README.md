@@ -17,10 +17,10 @@ To scan sus images
 python main.py --scan --input imagename.png
 
 To embed text into image
-python main.py --embed --mode text --input cover.png --payload secret.txt --output stego.png
+python main.py --embed --mode lsb --input image2.png --payload secret.txt --output new.png
 
 To extract text from the image
-python main.py --extract --mode text --input stego.png --output recovered.txt
+python main.py --extract --mode lsb --input stego.png --output recovered.txt
 
 
 To embed image into image 
