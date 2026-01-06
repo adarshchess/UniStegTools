@@ -1,8 +1,8 @@
-# core/detect.py
+import os
 
 def detect_file_type(path):
     """
-    Detects the type of a file based on its magic number (signature).
+    Detects the type of a file based on its magic number (signature) or extension.
     Reads the first few bytes of the file and compares them to known patterns.
     """
     with open(path, "rb") as f:        # Open file in binary mode
@@ -20,6 +20,10 @@ def detect_file_type(path):
     elif sig.startswith(b"RIFF"):
         return "wav"
 
+    # Fallback: check extension for text files
+    ext = os.path.splitext(path)[1].lower()
+    if ext == ".txt":
+        return "text"
+
     # If none match, return unknown
-    else:
-        return "unknown"
+    return "unknown"
