@@ -108,6 +108,7 @@ python main.py --scan --input cover.png
 Image LSB (Text → Image)
 Embed:
 python main.py --embed --input cover.png --payload secret.txt --output stego.png --mode lsb
+
 Extract:
 python main.py --extract --input stego.png --output recovered.txt --mode lsb
 
@@ -115,6 +116,7 @@ python main.py --extract --input stego.png --output recovered.txt --mode lsb
 Image-in-Image
 Embed:
 python main.py --embed --input cover.png --payload hidden.png --output stego.png --mode image
+
 Extract:
 python main.py --extract --input stego.png --output extracted.png --mode image
 
@@ -122,6 +124,7 @@ python main.py --extract --input stego.png --output extracted.png --mode image
 Audio LSB (Text/File → WAV)
 Embed:
 python main.py --embed --input cover.wav --payload secret.txt --output stego.wav --mode audio
+
 Extract:
 python main.py --extract --input stego.wav --output recovered.txt --mode audio
 
@@ -129,6 +132,7 @@ python main.py --extract --input stego.wav --output recovered.txt --mode audio
 Adaptive RGB (Key-Based Secure)
 Embed:
 python main.py --embed --input cover.png --payload secret.txt --output stego.png --mode adaptive --key mySecretKey
+
 Extract:
 python main.py --extract --input stego.png --output recovered.txt --mode adaptive --key mySecretKey
 
@@ -136,6 +140,7 @@ python main.py --extract --input stego.png --output recovered.txt --mode adaptiv
 Text Steganography
 Embed:
 python main.py --embed --input cover.txt --payload secret.txt --output stego.txt --mode text
+
 Extract:
 python main.py --extract --input stego.txt --output recovered.txt --mode text
 
@@ -143,6 +148,7 @@ python main.py --extract --input stego.txt --output recovered.txt --mode text
 DCT (JPEG Frequency Domain)
 Embed:
 python main.py --embed --input cover.jpg --payload secret.txt --output stego.jpg --mode dct
+
 Extract:
 python main.py --extract --input stego.jpg --output recovered.txt --mode dct
 
@@ -151,4 +157,5 @@ python main.py --extract --input stego.jpg --output recovered.txt --mode dct
 there are some sample images and text files in the main folder to try if you want.
 
 thanks
+
 adarsh
