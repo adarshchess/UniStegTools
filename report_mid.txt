@@ -1,0 +1,147 @@
+Hello infosec team,
+
+This is my first project and ive actually enjoyed working on it. its fully python based using standard libraries. 
+Although it is a cli based tool but it works really well. As of now it can perform image steganography i.e hiding text into image or image into image,
+I got this 'image into image' idea from one of the cotd challenges we had, so i tried to implement it. 
+It can also detect new image for hidden data via lsb inspection even metadeta anomalies for non png images.
+
+The challenges i faced so far was the understanding how the hiding actually takes place 
+like we are converting payload into bits then embedding those bits in the lsb of each pixel's rgb channel
+also the use of numpy array to store all the bits all of this was a little complicated for me at first,
+but im really enjoying the process hoping to move towards audio steganography and adding some other features to it as well.
+
+Below is a brief report of all the programs of the tool
+
+detect.py -> this was the initial basic program just to detect the file type, it does nothing more than that.
+
+
+image_lsb.py -> this is the first program for hiding text payload into image file, it works like 
+                ~ we read all the text data convert them from bytes into bits for embedding
+                ~ we check if the payload can fit into the image if it passes then move to embedding
+                ~ whatever payload bits we have we will embed it into lsb of each rgb channel of our image 
+                ~ lastly we save our steg image 
+                ~ for extraction of text data from the image 
+                     ~we open the image; append all the lsb into bits[] list
+                     ~recover the payload; write the payload to disk using (file i/o) 
+
+scan.py -> this is the new program which we can use to scan the sus images for probable hidden text or metadata 
+           -> we install a new library "piexif" for this program (used for reading, modifying and removing metadata)
+            ~first we scan lsb patterns => ext lsb from all rgb channels =>decode the first 32 bits and check its size
+              if it satisfies 2 conditions size>0 (intended to hide data)&& size<image capacity (img can hold that much data)
+              if both the conditions are true we can flag it as "possible" hidden payload
+            ~for scanning metadata
+               we extract EXIF tags using that piexif library => create an array/list for anomalies and append unusual fields
+
+
+image_embed.py -> this takes image steganography ahead by embedding image into image 
+                 -> we use the new library PIL (py img library) for this purpose
+                 ~ as usual first we convert payload img into bits so we can embed it 
+                 ~ before embedding we do a capacity check 
+                 ~ if it can fit we put the bits of payload into the lsb of the cover  img and save it
+                 ~ for extraction of image from the image
+                          ~open the image and extract the lsb from it=> we reconstruct the header file (it stores the info of the payload)
+                          ~calculate the total bits needed=>extract the payload+header
+                          ~rebuild the payload bytes to image and save it
+
+So all of this is combinedly imported and run from main.py that is where the cli works from, so its not messy.  
+This sums up the entire tool (as of now) i hope my work met your expectations and i would appreciate any improvements and inputs from your side.
+
+
+
+
+
+AFTER MID EVAL
+
+Hello Infosec team, 
+
+Im very happy to announce ive finished my first open source project or rather first project ever, although it can still be further extended and newer features can be added
+but im calling it a day. before the mid eval this tool was capable of performing only one domain of steganography the spatial domain in which first module was 
+text into image another was image into image so ive tried to expand this further to other two domains of steganography i.e text steganography embedding text into text and transform steganography a DCT (discrete cosine transfrom) embedding data into mid frequency dct coefficients
+also added two new modules in spatial domain one is my custom hiding method i call it the adaptive rgb where embedding in pixel is not uniform rather depend
+upon the pixel characteristics and the other is audio steganography modifying PCM samples (pulse coded modulation)
+Along with this to give it a more realistic feel i added a robustness testing of all the methods to check what happens to the payloads if we tamper the cover file (image, audio, etc)
+
+The challenges i faced were both technical and conceptual, as i went deeper into more complicated steg techniques like wave file, dct transform understanding their working and theory was very tough, the mathematical relations used, why certain things only take place in a specific way for eg. for applying 2d dct we centralized each 8x8 block around 0 by doing -128, and so on, but i really learnt a lot from the process and hope to use this experience to my future projects as well. 
+
+below is the report of all the new programs of the tool:-
+
+audio_stego.py -> with this we add another file embedding data inside audio files
+                  ~we use a new library wave (std py library to read and write wav files)
+                  ~also the library struct (because wav frame are bytes but we need to interpret them as array data)
+                   To Embed
+                  ~open a wav file; convert raw bytes into array of 16 bit signed integers (so we read audio samples as integers)
+                      
+                  ~read the payload bits; and build a header file having info s/a {payload length, signature} embed each bit into the lsb of sample wav
+                  ~so when the payload bit is inserted the amplitude is changes by +- 1 which is unnoticeable by human ears
+                   To Extract
+                   ~read the lsb corresponding to header; parse the payload length
+                   ~read the exact no of payload bits and reconstruct the payload
+                   ~now just write it to disk using (file i/o)
+
+adaptive_rgb_stego.py       -> this is the last file for spatial steganography that uses pixel noise (wrt neighbouring pixel) and has a secret key without which ext is not possible;
+(my custom hiding method)
+                            ~new libraries in this file are hashlib (used to hash the secret key)
+                                random (for random no. generation for shuffling pixels etc which can be determined afterwards)=>PRNG
+                                zlib (for integrity check, the current data and prev data are same or not)
+                            ~preparing header as usual for the payload we want to embed
+                           Features of the Custom hiding
+                            ~we use oops concept and create a default constructor to have some imp variables eg threshold values for diff noises (min,mid)
+                              what noise actually mean here=> noise here means local image complexity where image entropy is high we say high noise (edges grass texture)
+                                                              and low noise means flat regions like sky walls solid color skin
+                            ~we calculate noise by creating a noise map of the image converting rgb into luma (brightness based pixel)
+                                and measure the difference of brightness of a pixel with its neighbouring pixels
+                            ~acc to this where the noise is high we embed 2 bits where the noise is mid we embed 1 bit and 0 for low noise
+                            ~we also have a rgb channel bias B>G>R (because eye is least sensitive for blue) and self capacity restraint our max limit is 0.7 of the entire img
+                            ~here the header is also not normally visible i call it header whitening 
+                                    we convert our secret key into a 256bit hash of 32 bytes and convert it into a random keystream bits(created by random fn)
+                                       white header= original header XOR keystream bits
+                              so you cannot extract the header without the keystream with all your might
+                            ~Embedding and Extrn are as usual expect one rule embedding 2 bits in high noise pixel and 1 bit in mid noise pixel
+
+text_stego.py  -> this is the 2nd domain of steganography covering text domain using formatting and whitespace  
+                 ~new libraries used re (regular expression) this helps us "tokenize text" preserving the formatting
+                 ~as usual we have the build a header file for the payload then convert the payload into bits
+                 
+                 ~ we basically take the (cover)text break it into 2 parts whitespaces (space, tabs, \n) and non whitespaces(words and chars)
+                 ~ we use only spaces between words to hide payload with the encoding as single space= bit 0 and double space=bit 1
+                 ~ embedding and extrn follow the usual header payload mechanism just the condition of 0 and 1
+
+
+image_dct_stego.py -> this is the last domain of steganography covering transform domain steganography works on freq domain using dct (discrete cosine transform)
+                      dct is a math transform that takes pixel intensities (spatial domain) and convert them to how pixel changes values (frequency domain)
+                      ~new libraries => OpenCV for greyscale reading and dct  
+                      Embedding logic
+                       ~we start with fresh image and raw payload bytes=> prepare the header of the payload
+                       ~we convert the entire image into multiple 8x8 blocks and embed 1 bit of payload in each block
+                       ~so we iterate the image block by block 
+                       ~first we turn the image grey => 1 color 1 bit per block (rgb has 3 channels)
+                       ~now either bit 0 or 1 will be inserted in each of these blocks will depend upon their sign of coeff.=>8x8 DCT matrix
+                        mag->+ve then 1 else 0
+                       ~after that 1 bit is written to that block we convert it back to pixel using inverse dct this is how we achieve the "grey" img with payload inside
+                       Extraction 
+                        ~helper fns used above will be same just the workflow and order of operations would differ
+                        ~read the image block by block=>recover bits in same order=>rebuild the payload =>do a integrity check before writing it to the disk
+
+
+with this im done with the steganography modules for embedding and extracting data from various file types across different steganography domains, but there is one more
+thing which i mentioned earlier that is my robustness testing for these methods this is not a steganography domain, but it is still valuable
+
+robustness_image.py -> this is not integrated with my main.py cli its a standalone file that imports my different steg methods applies it on the image explains test will the payload 
+                        survive the tampering of the cover image or not
+                       ~ libraries used here are PIL (py img lib) and OpenCV 
+                       ~so we apply 4 kinds of tampering /edits to the image
+                       ~ resize=> where pixel values are recomputed during scaling
+                       ~ blur=> apply gaussian blur on x,y pixel using the formula w(i,j) *P(x+i,y+j)
+                       ~ changing brightness=> convert rgb into hsv and increase 'v' value because we need to edit only brightness when we change back to rgb
+                          increased brightness would be applied uniformly 
+                       ~ transform jpeg 
+
+
+with this i wrap up my project report and the project itself, i hope i was able to meet the expectations of the judges, and i would really love to work in infosec if given a chance
+thank you for your reading this and yeah thats probably it. 
+
+              
+
+Thanks
+Adarsh
+25JE0809
